@@ -151,7 +151,7 @@ const News = () => {
                 scriptSrc="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
                 widgetConfig={{
                   "autosize": true,
-                  "symbol": "BINANCE:BTCUSDT",, // Default Symbol (Gold)
+                  "symbol": "BINANCE:BTCUSDT",, // Default Symbol (BITCOIN)
                   "interval": "D",
                   "timezone": "Etc/UTC",
                   "theme": "dark",
@@ -174,3 +174,4 @@ const News = () => {
 
 
 export default News;
+
