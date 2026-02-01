@@ -151,7 +151,7 @@ const News = () => {
                 scriptSrc="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
                 widgetConfig={{
                   "autosize": true,
-                  "symbol": "FX:XAUUSD", // Default Symbol (Gold)
+                  "symbol": "BINANCE:BTCUSDT",, // Default Symbol (Gold)
                   "interval": "D",
                   "timezone": "Etc/UTC",
                   "theme": "dark",
@@ -171,5 +171,6 @@ const News = () => {
     </div>
   );
 };
+
 
 export default News;
