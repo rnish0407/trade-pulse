@@ -1,13 +1,14 @@
 import React, { useState, useRef } from "react";
 import { useTrades } from "../store";
-import { Trash2, Download, Image as ImageIcon, UploadCloud, X } from "lucide-react";
+import { Trash2, Download, Image as ImageIcon, UploadCloud, X, MessageSquare } from "lucide-react";
 
 const TradeLog = () => {
   const { trades, addTrade, deleteTrade, exportToCSV } = useTrades();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // State for the Image Modal
+  // State for Popups
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedThought, setSelectedThought] = useState<string | null>(null); // New state for text popup
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -18,6 +19,7 @@ const TradeLog = () => {
     entry: "",
     exitPrice: "",
     pnl: "",
+    thoughts: "", // New field
     screenshot: "" as string | null
   });
 
@@ -50,12 +52,13 @@ const TradeLog = () => {
       lotSize: Number(formData.lotSize),
       pnl: pnlValue,
       status: status,
-      screenshot: formData.screenshot || undefined
+      screenshot: formData.screenshot || undefined,
+      thoughts: formData.thoughts // Save thoughts
     });
 
     setFormData({
       ...formData, 
-      pair: "", entry: "", exitPrice: "", pnl: "", screenshot: null 
+      pair: "", entry: "", exitPrice: "", pnl: "", thoughts: "", screenshot: null 
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -63,7 +66,7 @@ const TradeLog = () => {
   return (
     <div className="space-y-6 relative">
       
-      {/* --- IMAGE MODAL (POPUP) --- */}
+      {/* --- IMAGE POPUP --- */}
       {selectedImage && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
@@ -72,7 +75,7 @@ const TradeLog = () => {
           <div className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center">
             <button 
               onClick={() => setSelectedImage(null)}
-              className="absolute -top-12 right-0 text-white hover:text-red-400 transition-colors bg-gray-800 p-2 rounded-full"
+              className="absolute -top-12 right-0 text-white hover:text-red-400 bg-gray-800 p-2 rounded-full"
             >
               <X size={24} />
             </button>
@@ -82,6 +85,31 @@ const TradeLog = () => {
               className="rounded-lg shadow-2xl border border-gray-700 max-h-[85vh] object-contain"
               onClick={(e) => e.stopPropagation()}
             />
+          </div>
+        </div>
+      )}
+
+      {/* --- THOUGHTS POPUP (NEW) --- */}
+      {selectedThought && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedThought(null)}
+        >
+          <div 
+            className="relative w-full max-w-lg bg-gray-800 rounded-xl border border-gray-700 shadow-2xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <MessageSquare className="text-blue-400" size={20}/> Trade Thoughts
+              </h3>
+              <button onClick={() => setSelectedThought(null)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">
+              {selectedThought}
+            </p>
           </div>
         </div>
       )}
@@ -122,7 +150,7 @@ const TradeLog = () => {
           <input type="number" step="0.00001" placeholder="Exit Price" className="bg-gray-700 text-white p-3 rounded-lg border border-gray-600 outline-none"
             value={formData.exitPrice} onChange={e => setFormData({...formData, exitPrice: e.target.value})} />
 
-          {/* P&L ENTRY WITH DYNAMIC FONT COLOR */}
+          {/* P&L ENTRY */}
           <div className="relative">
             <span className="absolute left-3 top-3 text-gray-400 font-bold">$</span>
             <input 
@@ -137,7 +165,17 @@ const TradeLog = () => {
             />
           </div>
 
-          <div className="md:col-span-3 flex items-center gap-2 bg-gray-700/50 p-2 rounded-lg border border-gray-600 border-dashed">
+          {/* NEW THOUGHTS TEXT AREA */}
+          <div className="md:col-span-4">
+            <textarea 
+              placeholder="Trade thoughts, emotions, or analysis..." 
+              className="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 outline-none focus:border-blue-500 h-20 resize-none"
+              value={formData.thoughts}
+              onChange={e => setFormData({...formData, thoughts: e.target.value})}
+            />
+          </div>
+
+          <div className="md:col-span-4 flex items-center gap-2 bg-gray-700/50 p-2 rounded-lg border border-gray-600 border-dashed">
             <UploadCloud className="text-gray-400 ml-2" size={20} />
             <input 
               type="file" 
@@ -148,7 +186,7 @@ const TradeLog = () => {
             />
           </div>
 
-          <button type="submit" className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-lg font-bold transition-colors shadow-lg">
+          <button type="submit" className="bg-green-600 hover:bg-green-500 text-white p-3 rounded-lg font-bold transition-colors shadow-lg md:col-span-4">
             Add To Journal
           </button>
         </form>
@@ -163,9 +201,8 @@ const TradeLog = () => {
                 <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Pair</th>
                 <th className="px-6 py-4">Strategy</th>
-                <th className="px-6 py-4">Lot</th>
                 <th className="px-6 py-4">P&L</th>
-                <th className="px-6 py-4 text-center">Screenshot</th>
+                <th className="px-6 py-4 text-center">Data</th> {/* Header for icons */}
                 <th className="px-6 py-4 text-right">Delete</th>
               </tr>
             </thead>
@@ -175,21 +212,38 @@ const TradeLog = () => {
                   <td className="px-6 py-4 text-sm">{trade.date}</td>
                   <td className="px-6 py-4 font-bold text-white uppercase">{trade.pair} <span className={`text-[10px] ml-1 ${trade.direction === 'Long' ? 'text-green-400' : 'text-red-400'}`}>{trade.direction}</span></td>
                   <td className="px-6 py-4 text-sm opacity-70">{trade.strategy || "-"}</td>
-                  <td className="px-6 py-4 font-mono">{trade.lotSize}</td>
                   <td className={`px-6 py-4 font-bold font-mono ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {trade.pnl >= 0 ? '+' : ''}{trade.pnl}
                   </td>
                   
+                  {/* ICONS COLUMN (SCREENSHOT + THOUGHTS) */}
                   <td className="px-6 py-4 text-center">
-                    {trade.screenshot ? (
-                      <button 
-                        onClick={() => setSelectedImage(trade.screenshot || null)}
-                        className="text-blue-400 hover:text-white p-2 bg-blue-500/10 rounded-lg transition-all"
-                        title="View Screenshot"
-                      >
-                        <ImageIcon size={20} />
-                      </button>
-                    ) : <span className="text-gray-600">-</span>}
+                    <div className="flex justify-center gap-2">
+                      {trade.screenshot && (
+                        <button 
+                          onClick={() => setSelectedImage(trade.screenshot || null)}
+                          className="text-blue-400 hover:text-white p-2 bg-blue-500/10 rounded-lg transition-all"
+                          title="View Screenshot"
+                        >
+                          <ImageIcon size={18} />
+                        </button>
+                      )}
+                      
+                      {/* Only show button if thoughts exist */}
+                      {trade.thoughts && trade.thoughts.trim() !== "" && (
+                        <button 
+                          onClick={() => setSelectedThought(trade.thoughts || null)}
+                          className="text-purple-400 hover:text-white p-2 bg-purple-500/10 rounded-lg transition-all"
+                          title="Read Thoughts"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                      )}
+                      
+                      {!trade.screenshot && (!trade.thoughts || trade.thoughts.trim() === "") && (
+                        <span className="text-gray-600">-</span>
+                      )}
+                    </div>
                   </td>
 
                   <td className="px-6 py-4 text-right">
@@ -201,7 +255,7 @@ const TradeLog = () => {
               ))}
               {trades.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     No trades logged yet.
                   </td>
                 </tr>
